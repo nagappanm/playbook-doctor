@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Lint
+        run: |
+          ruff check .
+          black --check .
+
+      - name: Test
+        run: pytest -q
+
+      # U6 wires the self-audit in here: the tool must pass its own check.
+      # Kept separate from the test step so a self-audit failure is
+      # distinguishable from a test failure in the CI log.
+      - name: Self-audit
+        run: playbook-doctor check . --json | tee playbook-doctor-report.json
+
+      - name: Upload self-audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playbook-doctor-report
+          path: playbook-doctor-report.json
