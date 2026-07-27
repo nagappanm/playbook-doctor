@@ -45,3 +45,16 @@ before starting. Sessions are disposable, the repo is the memory.
   so in the spec rather than pretending otherwise.
 - `SKIP` had to be excluded from both sides of the score. Counting it in the
   denominator penalises a repo for not using MCP, which is not a defect.
+
+## U9 — first push (2026-07-27)
+
+- **CI went green against a stub CLI that exits 1.** GitHub Actions runs steps
+  under `bash -e` but *not* `pipefail`, so `playbook-doctor check . | tee report`
+  reported `tee`'s exit status and swallowed the failure entirely. The self-audit
+  gate — the whole dogfooding claim — was decorative for one commit.
+  Fixed with an explicit `shell: bash` + `set -o pipefail`.
+- Lesson, and it is the same one the tool exists for: **a gate that cannot fail
+  is not a gate.** Green CI is only evidence if you have watched it go red.
+- `CLAUDE.md` survived the push as mode `120000` (symlink), not a copy. Worth
+  checking on any host — some tooling silently materialises symlinks as files,
+  which is precisely the `PB-W3-03` defect.

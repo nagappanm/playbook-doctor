@@ -28,11 +28,18 @@ jobs:
       - name: Test
         run: pytest -q
 
-      # U6 wires the self-audit in here: the tool must pass its own check.
-      # Kept separate from the test step so a self-audit failure is
-      # distinguishable from a test failure in the CI log.
+      # The tool must pass its own check. Kept separate from the test step so a
+      # self-audit failure is distinguishable from a test failure in the log.
+      #
+      # `set -o pipefail` is load-bearing, not decoration. GitHub Actions runs
+      # steps under `bash -e` WITHOUT pipefail, so `cmd | tee` reports tee's
+      # exit status and swallows a failing audit entirely. This gate passed a
+      # green CI against a stub CLI that exits 1 before pipefail was added.
       - name: Self-audit
-        run: playbook-doctor check . --json | tee playbook-doctor-report.json
+        shell: bash
+        run: |
+          set -o pipefail
+          playbook-doctor check . --json | tee playbook-doctor-report.json
 
       - name: Upload self-audit report
         if: always()
