@@ -49,5 +49,5 @@ is last and gated.
 
 - [x] Self-audit green; CI step already wired in `.github/workflows/ci.yml`
 - [x] Run against `agentic-ai-engineering` and confirm it reproduces the three known gaps
-  — see `docs/capstone/evidence/02-cross-repo-dogfood.md` (course repo scores 14%,
-  two FAILs on W3/W5; this repo scores 90%)
+  — see `docs/capstone/evidence/02-cross-repo-dogfood.md` (course repo scores 25%,
+  two FAILs on W3/W5; this repo scores 91%)

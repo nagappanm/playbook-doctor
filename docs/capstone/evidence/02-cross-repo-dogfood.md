@@ -10,8 +10,16 @@ complete and the tool passed its own audit.
 
 | Repo | Role | Self-audit score | Exit |
 |---|---|---|---|
-| `playbook-doctor` (this repo) | the "after" — built to the playbook | 90% (9 PASS, 1 WARN, 0 FAIL) | 0 |
-| `nagappanm/agentic-ai-engineering` | the "before" — the course working repo | 14% (1 PASS, 4 WARN, 2 FAIL) | 1 |
+| `playbook-doctor` (this repo) | the "after" — built to the playbook | **91%** (10 PASS, 1 WARN, 0 FAIL, 6 SKIP) | 0 |
+| `nagappanm/agentic-ai-engineering` | the "before" — the course working repo | **25%** (2 PASS, 4 WARN, 2 FAIL, 9 SKIP) | 1 |
+
+> **Scores restated 2026-07-28.** This table first recorded 90% / 14%. Those were
+> correct when written and went stale two PRs later — adding `PB-W5-05` and
+> widening `PB-W6-01` changed both denominators. The figures above are re-measured
+> against the current catalog. Recorded rather than quietly overwritten: a
+> documented number that drifts from what the command actually prints is the same
+> class of defect this tool exists to catch, and it surfaced only because the
+> evidence was re-run instead of trusted.
 
 Same tool, same catalog, run against both. The gap between the scores *is* the
 result: the auditor cleanly separates a repo built to the playbook from one that
@@ -24,8 +32,11 @@ FAIL PB-W3-01  AGENTS.md is missing from the repo root
 FAIL PB-W5-01  .pre-commit-config.yaml is missing from the repo root
 WARN PB-W5-03  no .secrets.baseline (a repo may scan without one)
 WARN PB-W5-04  no Stop hook in .claude/settings.json
-WARN PB-W6-01  no non-empty specs directory
+WARN PB-W6-01  no spec directory (specs/, spec/, docs/specs/, docs/spec/,
+               .specify/) or root spec document
 WARN PB-W7-01  no token or cost ceiling declared (advisory)
+PASS PB-W5-05  CI runs guardrail scans: codeql, ruff, semgrep
+PASS PB-W6-02  every SKILL.md carries required frontmatter
 ```
 
 ### The three substantive gaps
@@ -66,6 +77,10 @@ breaks an agent's ability to work safely and verifiably.
 ## Verification
 
 ```bash
-playbook-doctor check .                         # this repo  -> 90%, exit 0
-playbook-doctor check ../agentic-ai-engineering # course repo -> 14%, exit 1
+playbook-doctor check .                         # this repo  -> 91%, exit 0
+playbook-doctor check ../agentic-ai-engineering # course repo -> 25%, exit 1
 ```
+
+Re-run these before citing the numbers. The catalog is additive, so every new
+check moves both denominators — which is exactly how the 90/14 figures above went
+stale.

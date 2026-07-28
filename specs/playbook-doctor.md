@@ -73,6 +73,20 @@ rather than bouncing off a wall of red on day one.
 `score = count(PASS) / count(PASS + WARN + FAIL)`. `SKIP` is excluded from both
 sides — a repo that does not use MCP is not penalised for having no `mcp.json`.
 
+### When a check itself crashes
+
+A check is contracted never to crash (§ "Never crash on a malformed repo"). If one
+does anyway, the runner catches it and returns `WARN` with the exception type and
+message in `detail`. Every other check still runs.
+
+`WARN`, not `FAIL`, and the distinction is deliberate: an escaped exception is a
+bug in **our** check, not a defect in the audited repo. Failing someone else's
+build because our code crashed would be the tool over-claiming authority it has
+not earned. The bug stays visible and does not block.
+
+*This clause was written after implementation, not before — see
+`docs/capstone/critical-review.md` finding 1.*
+
 ---
 
 ## 4. Exit codes
