@@ -217,3 +217,21 @@ before starting. Sessions are disposable, the repo is the memory.
   root spec documents. spec-kit now PASSes on `spec-driven.md`; this repo still
   PASSes on `specs/`. A WARN-only check can afford the broader net — under-
   crediting real spec work is the worse error than an occasional generous PASS.
+
+## PB-W5-05 — credit CI-side guardrails (2026-07-28)
+
+- The dogfood's sharpest finding was that agentic-ai-engineering runs semgrep in
+  CI but has no local pre-commit — and the tool gave it *zero* guardrail credit,
+  scoring it as if it had none. Added `PB-W5-05`: scan `.github/workflows/*` for
+  recognised guardrail tools (semgrep, codeql, gitleaks, detect-secrets, ruff,
+  black, eslint, pre-commit, …) and PASS when CI runs one.
+- **WARN-max, never FAIL, and deliberately orthogonal to W5-01.** Local hooks
+  bite before a commit; CI bites after a push. So a repo can FAIL W5-01 (no local
+  hooks) *and* PASS W5-05 (scans in CI) — that pair is the accurate picture, not a
+  contradiction. W5-05 credits the second line without letting it paper over the
+  missing first line.
+- Whole-word matching (`\bblack\b`) so "blacklist" does not fire the "black"
+  signal — a real precision trap for a substring search over YAML.
+- Result on the five-repo set: agentic-ai-engineering 14%→25% (PASS on codeql,
+  ruff, semgrep); spec-kit and self-healing WARN (CI exists, no scan); agent-
+  skills SKIPs (no CI); this repo PASSes (CI runs ruff+black), 90%→91%.
