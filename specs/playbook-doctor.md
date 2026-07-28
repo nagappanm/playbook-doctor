@@ -179,9 +179,18 @@ practice, not a hard requirement.
 
 ### W6 — spec-driven development
 
-**`PB-W6-01` · specs/ exists and is non-empty · WARN**
-Searched: `specs/`, `spec/`, `docs/specs/`. PASS when one exists and contains at
-least one file. WARN otherwise.
+**`PB-W6-01` · spec artefacts present · WARN**
+PASS when the repo carries a spec artefact, found as either:
+
+- a non-empty directory among `specs/`, `spec/`, `docs/specs/`, `docs/spec/`,
+  `.specify/`; or
+- a root-level spec document matching `spec.md`, `specs.md`, `spec-*.md`, or
+  `*-spec.md` (case-insensitive, so `SPEC.md` and `spec-driven.md` both count).
+
+WARN otherwise. *Search paths were widened after a cross-repo audit found
+spec-driven repos (e.g. spec-kit) keeping their specs outside a `specs/`
+directory — as a root `spec-driven.md` and under `.specify/`. The original
+`specs/`-only search under-credited them.*
 
 **`PB-W6-02` · Every SKILL.md carries required frontmatter · FAIL**
 Glob `**/SKILL.md`, excluding `.venv/`, `node_modules/`, `.git/`. Each must have
@@ -271,3 +280,8 @@ repair something does not itself change the exit code.
 2. Decide whether `PB-W6-02` stays `FAIL` once more repos with skills are audited.
 3. Per-repo severity overrides via config — some teams will not want
    `PB-W6-02` blocking.
+
+**Done:** `PB-W6-01` search paths were calibrated against a five-repo audit (see
+`NOTES.md`, cross-repo audit) — spec-kit kept its specs as a root `spec-driven.md`
+and was under-credited. Widened to accept more spec directories and root spec
+documents.
