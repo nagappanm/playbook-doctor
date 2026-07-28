@@ -17,6 +17,8 @@ from playbook_doctor import report
 from playbook_doctor.cli import main
 from playbook_doctor.registry import Check, Status, Verdict, exit_code, score
 
+REPO_ROOT = Path(__file__).resolve().parent.parent
+
 
 def _v(status: Status, check_id: str = "PB-W3-01", week: str = "W3") -> Verdict:
     detail = None if status is Status.PASS else "because"
@@ -66,14 +68,21 @@ def test_console_render_groups_by_week_and_summarises():
     assert "score 100%" in out
 
 
-def test_cli_check_on_a_clean_dir_exits_zero(tmp_path, capsys):
-    # No checks are registered yet in U3, so an empty audit is a clean audit.
-    assert main(["check", str(tmp_path)]) == 0
+def test_cli_exits_one_when_a_check_fails(tmp_path, capsys):
+    # A bare directory is missing AGENTS.md and the pre-commit config, so real
+    # checks FAIL and the CLI must surface that as exit 1.
+    assert main(["check", str(tmp_path)]) == 1
+    assert "score" in capsys.readouterr().out
+
+
+def test_cli_exits_zero_on_this_repo(capsys):
+    # End-to-end dogfood: playbook-doctor passes its own audit (no FAIL).
+    assert main(["check", str(REPO_ROOT)]) == 0
     assert "score" in capsys.readouterr().out
 
 
 def test_cli_json_flag_emits_only_json(tmp_path, capsys):
-    assert main(["check", str(tmp_path), "--json"]) == 0
+    main(["check", str(tmp_path), "--json"])
     json.loads(capsys.readouterr().out)  # raises if anything else leaked to stdout
 
 
