@@ -79,3 +79,33 @@ before starting. Sessions are disposable, the repo is the memory.
   adds the 2 for a `PATH` that is not a directory.
 - Week ordering in the console report is `W2 < ... < W7 < M9`, not lexical —
   `M9` sorts *after* the W-weeks despite `M < W`. `_week_key` encodes that.
+
+## U4 — check modules (2026-07-28)
+
+- **A per-check gate hid a full-suite regression.** While building each module I
+  gated on `pytest -q tests/test_pb_XX.py` — the new module's own tests — plus
+  the self-audit. Both stayed green. But the moment `PB-W3-01` registered, the
+  U3 CLI test `test_cli_check_on_a_clean_dir_exits_zero` went red: an empty
+  `tmp_path` is no longer a clean audit once a FAIL-capable check exists, it now
+  FAILs "AGENTS.md exists" and exits 1. The narrow gate never ran that test, so
+  the break rode along invisibly for several commits until the amend on
+  `PB-M9-03` caught and fixed it. **Lesson: run the whole suite each commit, not
+  just the file you touched.** The self-audit passing is not the same as the
+  tests passing — they check different things.
+- The fix reframed the CLI tests: a bare dir must now exit 1 (real checks fail),
+  and a new end-to-end test asserts *this repo* passes its own audit (exit 0).
+  The empty-registry assumptions from U3 were load-bearing and had to go.
+- The three M9 checks share loop-script discovery, so it lives in
+  `playbook_doctor/loops.py`, not triplicated. A pure read-only helper is not
+  "shared state between checks" — the checks' logic stays independent; only the
+  definition of *what a loop script is* is centralised.
+- Every FAIL-message string kept tripping the 100-char line limit. Black will
+  not break a string literal, so ruff E501 fires even after formatting. The fix
+  is to bind the message to a `detail` local and pass that — done enough times
+  now that it is the house pattern for any non-trivial verdict message.
+- **`PB-W4-02` was deliberately NOT implemented.** It is credential-adjacent and
+  gated for human review by AGENTS.md, the spec, and the plan. Left pending on
+  purpose — an autonomous pass must not author inline-credential detection.
+- Self-audit today: `PB-W7-01` is the lone WARN (this repo declares no token
+  budget), everything else PASS or SKIP, exit 0. The WARN is honest and left as
+  is — not papered over with a fake budget line just to score 100%.
