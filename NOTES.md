@@ -196,3 +196,24 @@ before starting. Sessions are disposable, the repo is the memory.
 - Demoed on a bare repo: 0% (2 FAIL) → `created` four artefacts + `refused` the
   secrets baseline (generating one needs a real detect-secrets scan, not a
   fabricated file). Re-audit clean.
+
+## Cross-repo audit + PB-W6-01 calibration (2026-07-28)
+
+- Ran the tool against five repos to stress it beyond the fixtures: this repo
+  (90%), spec-kit (38%→50% after the fix below), agentic-ai-engineering (14%),
+  agent-skills (14%), self-healing-framework-playwright (0%). No crashes, no
+  tracebacks, zero false positives — every FAIL/WARN matched a real absent
+  artefact confirmed by hand. `PB-W6-02` PASSed a repo with **70** SKILL.md
+  files, exercising the glob/frontmatter path far harder than the unit fixtures.
+- The U1 note claimed self-healing-framework-playwright carries a
+  `.secrets.baseline` with 2 unaudited entries. Its HEAD today carries **none** at
+  all — the tool's WARN is correct; the earlier note described the reference
+  config at that moment, and this repo's state has since diverged. Exactly the
+  kind of "state is not the config" drift the whole tool exists to surface.
+- **Calibration acted on: `PB-W6-01`.** spec-kit — a spec-driven-development
+  tool — was under-credited because it keeps specs as a root `spec-driven.md` and
+  under `.specify/`, none of which the `specs/`-only search reached. Widened the
+  search (spec §5 updated first, then the check) to more spec directories and
+  root spec documents. spec-kit now PASSes on `spec-driven.md`; this repo still
+  PASSes on `specs/`. A WARN-only check can afford the broader net — under-
+  crediting real spec work is the worse error than an occasional generous PASS.
