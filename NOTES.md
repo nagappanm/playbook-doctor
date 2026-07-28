@@ -155,3 +155,22 @@ before starting. Sessions are disposable, the repo is the memory.
   on the first external repo pointed at.
 - No false positives across the run. Every FAIL/WARN corresponded to a real
   absent artefact confirmed against the checkout.
+
+## PB-W4-02 — inline credentials (2026-07-28, human-reviewed)
+
+- The one gated *check*. Implemented only after a human reviewed the diff and
+  approved, per the AGENTS.md caution that credential-adjacent logic stays
+  human-reviewed. Autonomy stopped at "here is the diff"; a person said go.
+- **The value is never printed.** A FAIL names the offending key *paths* only —
+  verified with a live `--json` run where the planted value appeared zero times.
+  Printing a secret to report a secret would defeat the check.
+- Three spec-underspecified calls, all surfaced to the reviewer before landing:
+  malformed config → SKIP (PB-W4-01 owns the malformed-FAIL, no double report);
+  only strings directly under a dict key are candidates (a string in a list has
+  no key of its own); env-ref matching is **whole-string**, kept literal to spec
+  §4. The whole-string call means `"Bearer ${TOKEN}"` would FAIL — flagged as a
+  known edge; left as-is because changing it means changing the authoritative
+  spec first, not drifting the code away from it.
+- Test values are assembled from low-entropy fragments at runtime and written
+  only to tmp_path, so no `sensitive_key: "literal"` adjacency exists in the
+  committed source and the repo's own detect-secrets/semgrep have nothing to bite.

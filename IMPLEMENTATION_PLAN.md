@@ -33,7 +33,7 @@ failing fixture, one test file. Commit separately.
 - [x] `PB-M9-02` loop exits 0 only on green
 - [x] `PB-M9-03` loop works on a branch or worktree
 - [x] `PB-W4-01` mcp.json parses
-- [ ] **`PB-W4-02` no inline credentials — HUMAN REVIEW REQUIRED, do not implement autonomously**
+- [x] **`PB-W4-02` no inline credentials — implemented under human review (diff reviewed and approved)**
 
 Ordering note: the W3/W5 checks come first because this repo already satisfies
 them, so they can be verified against a known-good subject immediately. `PB-W4-02`
