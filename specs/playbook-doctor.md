@@ -177,6 +177,32 @@ The empty-array case is called out separately in `detail` because it is the one
 that reads as configured at a glance. Never `FAIL` — a stop hook is a strong
 practice, not a hard requirement.
 
+**`PB-W5-05` · CI runs guardrail scans · WARN**
+Local pre-commit (`PB-W5-01`/`02`) is the hard requirement because it bites
+*before* a commit; CI scanning is a weaker second line that bites after a push.
+This check gives explicit credit for that second line so a repo that guardrails
+in CI is not scored as having none.
+
+Scan every `.github/workflows/*.yml` and `*.yaml`. A guardrail signal is a
+whole-word match (case-insensitive) for a recognised tool:
+
+| Category | Recognised tools |
+|---|---|
+| secrets | `detect-secrets`, `gitleaks`, `trufflehog` |
+| SAST | `semgrep`, `codeql`, `bandit`, `snyk` |
+| lint/format | `ruff`, `black`, `flake8`, `eslint`, `prettier`, `pylint`, `golangci-lint` |
+| hooks-in-CI | `pre-commit` |
+
+| State | Verdict |
+|---|---|
+| no `.github/workflows/` (or no workflow files) | SKIP — no CI to judge |
+| a workflow runs a recognised guardrail | PASS, naming the tools found |
+| workflows present, none run a guardrail | WARN — CI exists but scans nothing |
+
+Never `FAIL` — this credits defense-in-depth; the absence of *local* guardrails
+is already `PB-W5-01`'s job. A repo can FAIL `W5-01` (no local hooks) and still
+PASS `W5-05` (scans in CI) — an accurate picture, not a contradiction.
+
 ### W6 — spec-driven development
 
 **`PB-W6-01` · spec artefacts present · WARN**
