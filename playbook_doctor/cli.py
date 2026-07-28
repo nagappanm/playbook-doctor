@@ -1,17 +1,56 @@
-"""Command-line entry point.
+"""Command-line entry point: ``playbook-doctor check [PATH] [--json]``.
 
-Stub only: the real engine (registry, verdicts, report) lands in U3. This exists
-so the package installs and the console script resolves while the guardrails are
-being proven out in U1.
+The engine (registry, checks, report) does the work; this module is argument
+parsing, path validation, and exit-code plumbing. Exit codes follow the spec:
+0 clean, 1 at least one FAIL, 2 a usage error (argparse emits 2 on its own for
+bad flags and missing commands).
+
+``init`` and ``--fix`` are specified but land in U5; only ``check`` is wired here.
 """
 
+from __future__ import annotations
+
+import argparse
 import sys
+from pathlib import Path
+
+from playbook_doctor import registry, report
+
+
+def _build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="playbook-doctor",
+        description="Audit a repository against the AI-engineering playbook.",
+    )
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    check = sub.add_parser("check", help="Audit a repository and score it.")
+    check.add_argument("path", nargs="?", default=".", help="Repo root (default: .)")
+    check.add_argument(
+        "--json",
+        action="store_true",
+        help="Emit machine-readable JSON to stdout, and nothing else.",
+    )
+    return parser
+
+
+def _cmd_check(path_arg: str, as_json: bool) -> int:
+    root = Path(path_arg)
+    if not root.is_dir():
+        print(f"playbook-doctor: not a directory: {path_arg}", file=sys.stderr)
+        return 2
+
+    registry.load_checks()
+    verdicts = registry.run_all(root)
+
+    print(report.render_json(verdicts) if as_json else report.render_console(verdicts))
+    return registry.exit_code(verdicts)
 
 
 def main(argv: list[str] | None = None) -> int:
     argv = sys.argv[1:] if argv is None else argv
-    print("playbook-doctor: not implemented yet (engine lands in U3)", file=sys.stderr)
-    return 1
+    args = _build_parser().parse_args(argv)
+    return _cmd_check(args.path, args.json)
 
 
 if __name__ == "__main__":

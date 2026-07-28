@@ -9,9 +9,9 @@ Spec: `specs/playbook-doctor.md`
 
 ## U3 — core engine
 
-- [ ] `registry.py` — `Status` enum, frozen `Verdict` dataclass, `register` decorator, `run_all()` that isolates per-check exceptions
-- [ ] `report.py` — console rendering grouped by week, plus `--json` serialisation
-- [ ] `cli.py` — `check` command, `PATH` argument, `--json` flag, exit codes 0/1/2
+- [x] `registry.py` — `Status` enum, frozen `Verdict` dataclass, `register` decorator, `run_all()` that isolates per-check exceptions
+- [x] `report.py` — console rendering grouped by week, plus `--json` serialisation
+- [x] `cli.py` — `check` command, `PATH` argument, `--json` flag, exit codes 0/1/2
 
 ## U4 — check modules
 

@@ -58,3 +58,24 @@ before starting. Sessions are disposable, the repo is the memory.
 - `CLAUDE.md` survived the push as mode `120000` (symlink), not a copy. Worth
   checking on any host — some tooling silently materialises symlinks as files,
   which is precisely the `PB-W3-03` defect.
+
+## U3 — core engine (2026-07-28)
+
+- The engine is live with **zero checks registered** (they land in U4), so
+  `playbook-doctor check .` reports `score n/a  (0 pass, ...)` and exits 0. An
+  empty audit is a *clean* audit — the self-audit gate stays green through the
+  gap, which is the point of building the engine before the checks.
+- `score()` returns `None`, not `0.0`, when nothing is scored. Zero would read as
+  "failed everything"; `n/a` reads as "nothing to score". The `--json` `score`
+  field is `null` in that state.
+- **A crashing check is contained as WARN, never FAIL.** A check is contracted
+  never to crash; if one does, that's our bug, and failing someone else's build
+  (exit 1) on our bug would be the wrong blast radius. `Check.run` catches and
+  downgrades, and the `Check` carries id/week/title so a crashed check is still
+  named in the report. This is why registration metadata is separate from the
+  Verdict the function returns.
+- argparse already exits **2** on bad flags and a missing subcommand, which is
+  exactly the spec's usage-error code — no custom plumbing needed. The CLI only
+  adds the 2 for a `PATH` that is not a directory.
+- Week ordering in the console report is `W2 < ... < W7 < M9`, not lexical —
+  `M9` sorts *after* the W-weeks despite `M < W`. `_week_key` encodes that.
