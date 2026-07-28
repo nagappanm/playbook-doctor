@@ -4,8 +4,6 @@ The engine (registry, checks, report) and scaffolder do the work; this module is
 argument parsing, path validation, and exit-code plumbing. Exit codes follow the
 spec: 0 clean, 1 at least one FAIL, 2 a usage error (argparse emits 2 on its own
 for bad flags and missing commands).
-
-``--fix`` is specified (spec §6) but gated for human review; it is not wired here.
 """
 
 from __future__ import annotations
@@ -31,6 +29,11 @@ def _build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Emit machine-readable JSON to stdout, and nothing else.",
     )
+    check.add_argument(
+        "--fix",
+        action="store_true",
+        help="Apply additive repairs only (spec §6), then re-audit and report.",
+    )
 
     init = sub.add_parser("init", help="Scaffold absent playbook artefacts from templates.")
     init.add_argument("path", nargs="?", default=".", help="Repo root (default: .)")
@@ -42,15 +45,30 @@ def _build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _cmd_check(path_arg: str, as_json: bool) -> int:
+def _apply_fixes(root: Path, as_json: bool) -> None:
+    """Run additive repairs and log them. In --json mode the log goes to stderr
+    so stdout stays pure JSON; otherwise it prints above the re-audit report."""
+    outcomes = scaffold.fix(root, registry.run_all(root))
+    stream = sys.stderr if as_json else sys.stdout
+    if not outcomes:
+        print("repairs: nothing additive to do", file=stream)
+        return
+    print("repairs:", file=stream)
+    for outcome, detail in outcomes:
+        print(f"  {outcome:9} {detail}", file=stream)
+
+
+def _cmd_check(path_arg: str, as_json: bool, as_fix: bool) -> int:
     root = Path(path_arg)
     if not root.is_dir():
         print(f"playbook-doctor: not a directory: {path_arg}", file=sys.stderr)
         return 2
 
     registry.load_checks()
-    verdicts = registry.run_all(root)
+    if as_fix:
+        _apply_fixes(root, as_json)
 
+    verdicts = registry.run_all(root)
     print(report.render_json(verdicts) if as_json else report.render_console(verdicts))
     return registry.exit_code(verdicts)
 
@@ -71,7 +89,7 @@ def main(argv: list[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
     if args.command == "init":
         return _cmd_init(args.path, args.force)
-    return _cmd_check(args.path, args.json)
+    return _cmd_check(args.path, args.json, args.fix)
 
 
 if __name__ == "__main__":
