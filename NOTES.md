@@ -109,3 +109,30 @@ before starting. Sessions are disposable, the repo is the memory.
 - Self-audit today: `PB-W7-01` is the lone WARN (this repo declares no token
   budget), everything else PASS or SKIP, exit 0. The WARN is honest and left as
   is — not papered over with a fake budget line just to score 100%.
+
+## U5 — scaffolder (2026-07-28)
+
+- `init` is the *only* writer in the package; every check stays a pure read.
+  The additive contract is enforced in code, not just documented: skip-existing
+  without `--force`, and the CLAUDE.md symlink is never created over an existing
+  path *even with* `--force` — replacing a human's regular CLAUDE.md with a
+  symlink is the one thing spec §6 refuses outright.
+- The templates are written to *pass their own checks*: the AGENTS.md carries a
+  `## Verification` heading and a fenced block (W3-02) and stays short (W2-01),
+  the pre-commit config covers all three hook categories (W5-02), the settings
+  file has a real Stop command (W5-04). There is a dogfood test that asserts
+  exactly this — an init'd dir PASSes W3-01/02/03 and W5-01/02/04.
+- A freshly-init'd repo scores **70% (7 pass, 3 warn, 0 fail)**: the three WARNs
+  are no `.secrets.baseline`, no `specs/`, and no token budget — real gaps a
+  scaffold cannot honestly fill for you. init deliberately does **not** fabricate
+  a secrets baseline (that needs a real detect-secrets scan) or a specs dir.
+- **Packaging caveat:** templates are located at repo root via
+  `Path(__file__).parent.parent / "templates"`, which resolves correctly under
+  the editable install this repo uses. A non-editable wheel would not ship
+  templates/ without added package-data config. Fine for the dev/dogfood
+  workflow; flagged here so a future packaging task does not rediscover it.
+- **`--fix` was deliberately NOT wired.** Plan U5 and spec §6 gate it for human
+  review. The safe additive repairs (create a missing symlink, scaffold an
+  absent file) already exist inside `scaffold.init`; wiring them to a `check
+  --fix` flow — and drawing the refuse-line for the unsafe cases — is the part
+  that stays human-reviewed.
