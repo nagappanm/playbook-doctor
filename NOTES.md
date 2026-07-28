@@ -136,3 +136,22 @@ before starting. Sessions are disposable, the repo is the memory.
   absent file) already exist inside `scaffold.init`; wiring them to a `check
   --fix` flow — and drawing the refuse-line for the unsafe cases — is the part
   that stays human-reviewed.
+
+## U6 — dogfood (2026-07-28)
+
+- Ran the finished tool against `nagappanm/agentic-ai-engineering`, the course's
+  own working repo (added to the session read-only, cloned, audited, never
+  modified). It scores **14% (1 PASS, 4 WARN, 2 FAIL, exit 1)** against this
+  repo's **90%** — same catalog, opposite ends. Evidence written up in
+  `docs/capstone/evidence/02-cross-repo-dogfood.md`.
+- The plan said "the three known gaps" but never enumerated them, so I mapped to
+  the three substantive ones the tool actually reproduces and verified each by
+  hand: no AGENTS.md (FAIL), no local pre-commit guardrails (FAIL), no stop hook
+  (WARN). Did not invent a fourth or force the count — reported what is there.
+- **The sharpest single finding:** the course repo ships
+  `.github/workflows/semgrep.yml` but no `.pre-commit-config.yaml`. Guardrails run
+  in CI, nothing runs locally — a green CI badge over an empty local gate. That is
+  the "config that looks configured" thesis of the whole tool, found in the wild
+  on the first external repo pointed at.
+- No false positives across the run. Every FAIL/WARN corresponded to a real
+  absent artefact confirmed against the checkout.
