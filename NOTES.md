@@ -174,3 +174,25 @@ before starting. Sessions are disposable, the repo is the memory.
 - Test values are assembled from low-entropy fragments at runtime and written
   only to tmp_path, so no `sensitive_key: "literal"` adjacency exists in the
   committed source and the repo's own detect-secrets/semgrep have nothing to bite.
+
+## check --fix — additive repairs (2026-07-28, human-reviewed)
+
+- The second gated item, landed after explicit go-ahead. `scaffold.fix` reuses the
+  templates and creates only what is *absent*: AGENTS.md, .pre-commit-config.yaml,
+  .claude/settings.json, and the CLAUDE.md symlink. Everything else it **refuses**
+  with a printed reason and changes nothing.
+- **The symlink repair is driven by filesystem state, not the flagged set.** This
+  was the subtle bug I caught mid-build: PB-W3-03 SKIPs when CLAUDE.md is absent
+  (absence is not a defect), so gating the create on "W3-03 flagged" would mean
+  --fix never creates the symlink — the exact repair §6 lists as permitted. Fixed
+  by checking the path directly: correct symlink → nothing; wrong/regular file →
+  refuse; absent + AGENTS.md present → create.
+- **A refusal never changes the exit code.** --fix exits on the *re-audit's* own
+  status. A repo whose only defect is a regular-file CLAUDE.md gets a refusal and
+  still exits 1, because PB-W3-03 is still FAIL. Verified by test.
+- **--json stays pure.** With `--fix --json`, the repair log goes to stderr and
+  stdout is only the JSON report — the `--json` contract ("nothing else on
+  stdout") holds even while repairing.
+- Demoed on a bare repo: 0% (2 FAIL) → `created` four artefacts + `refused` the
+  secrets baseline (generating one needs a real detect-secrets scan, not a
+  fabricated file). Re-audit clean.

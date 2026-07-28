@@ -43,7 +43,7 @@ is last and gated.
 
 - [x] `templates/` — AGENTS.md, pre-commit config, hooks settings
 - [x] `scaffold.py` — `init`, skip-existing, `--force`
-- [ ] `--fix` wired to additive repairs only, per spec §6 — **HUMAN REVIEW REQUIRED**
+- [x] `--fix` wired to additive repairs only, per spec §6 — implemented under human review
 
 ## U6 — dogfood
 
